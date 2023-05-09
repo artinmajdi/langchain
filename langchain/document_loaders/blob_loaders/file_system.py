@@ -110,16 +110,11 @@ class FileSystemBlobLoader(BlobLoader):
         """Yield paths that match the requested pattern."""
         paths = self.path.glob(self.glob)
         for path in paths:
-            if path.is_file():
-                if self.suffixes and path.suffix not in self.suffixes:
-                    continue
+            if path.is_file() and (
+                not self.suffixes or path.suffix in self.suffixes
+            ):
                 yield path
 
     def count_matching_files(self) -> int:
         """Count files that match the pattern without loading them."""
-        # Carry out a full iteration to count the files without
-        # materializing anything expensive in memory.
-        num = 0
-        for _ in self._yield_paths():
-            num += 1
-        return num
+        return sum(1 for _ in self._yield_paths())
